@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.gaea</groupId>
+    <artifactId>gaea-common-db</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jdkLevel>1.6</jdkLevel>
+        <gaea.common.version>0.1-SNAPSHOT</gaea.common.version>
+        <spring.version>4.2.1.RELEASE</spring.version>
+        <hibernate.version>4.3.11.Final</hibernate.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.gaea</groupId>
+            <artifactId>gaea-common</artifactId>
+            <version>${gaea.common.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <!--Hibernate相关-->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
+        </dependency>
+    </dependencies>
+</project>
