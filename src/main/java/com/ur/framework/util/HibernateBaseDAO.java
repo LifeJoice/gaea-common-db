@@ -1,8 +1,8 @@
 package com.ur.framework.util;
 
-import com.ur.framework.paging.PagingBean;
-import com.ur.framework.paging.PagingResultDataWrapper;
-import com.ur.framework.system.factory.WebDataWrapperFactory;
+import org.gaea.paging.PagingBean;
+import org.gaea.paging.PagingResultDataWrapper;
+import org.gaea.system.factory.WebDataWrapperFactory;
 import org.hibernate.Query;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ public class HibernateBaseDAO<T> {
         return list;
     }
     
-    protected PagingResultDataWrapper pagingQuery(String hql,PagingBean paging) {
+    protected PagingResultDataWrapper pagingQuery(String hql, PagingBean paging) {
         Query query = sessionFactory.getCurrentSession().createQuery(hql);
         query.setFirstResult(paging.getStart());
         query.setMaxResults(paging.getPageSize());

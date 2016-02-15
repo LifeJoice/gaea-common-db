@@ -50,11 +50,19 @@ public class GaeaDateTimeIDGenerator implements IdentifierGenerator, Configurabl
             if (randomLength != null && randomLength > 0) {
                 // 生成ID以年月日时分开始。不到秒。
                 String dateTime = DateFormatUtils.format(new Date(), "yyMMddHHmm");
-                // 生成随机码，从ASCII码的第33位到126位作为随机字符池。ASCII 32位是空格，不能作为随机字符池。
-                String randomNum = RandomStringUtils.random(5, false, false);
+                // 生成随机码，不考虑从ASCII码生成，因为可能特殊字符在前端可能各种冲突。
+                String randomNum = RandomStringUtils.random(DEFAULT_RANDOM_LENGTH, true, true);
                 return dateTime + randomNum;
             }
             return null;
         }
+    }
+
+    public static void main(String[] args) {
+        // 生成ID以年月日时分开始。不到秒。
+        String dateTime = DateFormatUtils.format(new Date(), "yyMMddHHmm");
+        // 生成随机码，从ASCII码的第33位到126位作为随机字符池。ASCII 32位是空格，不能作为随机字符池。
+        String randomNum = RandomStringUtils.random(5, true, true);
+        System.out.println(dateTime + randomNum);
     }
 }
