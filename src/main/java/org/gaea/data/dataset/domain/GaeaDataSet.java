@@ -1,0 +1,82 @@
+package org.gaea.data.dataset.domain;
+
+import org.gaea.data.domain.GaeaDataSource;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 数据集实体。一个数据集对象，其实就是一句SQL和对应的结果集。
+ * Created by iverson on 2016/2/23.
+ */
+public class GaeaDataSet<T> implements Serializable{
+    private String id;// 类似code。自命名，不是无意义的系统生成。
+    private String sql;
+    private List<T> dsResults;// SQL查出来的对象的结果集
+    /**
+     * 最简单的结果集。键值对。适用于静态的。
+     * 例如：性别（男女）、业务的一些状态（未审、已审待批、已批）、季节（春夏秋冬）……之类的<p/>
+     * Key：应该对应的是页面下拉框的value；<br/>
+     * Value：对应下拉框显示的值（但一般不是真实的值）
+     */
+    private Map<String,String> simpleResults;
+    /**
+     * 缓存类型，具体参考下面的定义。
+     * 当前简单分两种：不缓存和静态缓存。
+     * 未来扩展了事件机制后，可以事件触发刷新，则可以对一般SQL结果集进行缓存（例如产品分类等）
+     */
+    private String cacheType;
+    public static final String CACHE_TYPE_NONE = "none";// 不缓存
+    public static final String CACHE_TYPE_STATIC = "static";// 静态的，系统启动时缓存，并不再刷新。
+//    private boolean isCache;// 是否缓存结果。对于一些静态的、变得比较少的可以缓存。
+    private GaeaDataSource dataSource;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getSql() {
+        return sql;
+    }
+
+    public void setSql(String sql) {
+        this.sql = sql;
+    }
+
+    public List<T> getDsResults() {
+        return dsResults;
+    }
+
+    public void setDsResults(List<T> dsResults) {
+        this.dsResults = dsResults;
+    }
+
+    public GaeaDataSource getDataSource() {
+        return dataSource;
+    }
+
+    public void setDataSource(GaeaDataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    public Map<String, String> getSimpleResults() {
+        return simpleResults;
+    }
+
+    public void setSimpleResults(Map<String, String> simpleResults) {
+        this.simpleResults = simpleResults;
+    }
+
+    public String getCacheType() {
+        return cacheType;
+    }
+
+    public void setCacheType(String cacheType) {
+        this.cacheType = cacheType;
+    }
+}
