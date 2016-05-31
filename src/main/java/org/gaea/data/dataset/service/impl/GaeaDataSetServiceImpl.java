@@ -45,6 +45,14 @@ public class GaeaDataSetServiceImpl implements GaeaDataSetService {
         return getCommonResults(new GaeaDsResultConfig(dsId, aliasObjName));
     }
 
+    /**
+     * 1. 返回数据集的key，统一小写。
+     * 2. text , value作为数据集的关键字，提供可配置和转换。（即如果查询SQL结果没有text、value字段，可以配置把某字段在返回页面前改名为text或value）
+     *
+     * @param resultConfig
+     * @return
+     * @throws ValidationFailedException
+     */
     public List<Map<String, Object>> getCommonResults(GaeaDsResultConfig resultConfig) throws ValidationFailedException {
 //        Map<String, String> results = new HashMap<String, String>();
         List<Map<String, Object>> results = null;
@@ -92,6 +100,8 @@ public class GaeaDataSetServiceImpl implements GaeaDataSetService {
     /**
      * 对结果集进行数据清洗。按照前端的需要，把数据的命名、大小写等进行后期处理。
      * 1. 返回数据集的key，统一小写。
+     * 2. text , value作为数据集的关键字，提供可配置和转换。（即如果查询SQL结果没有text、value字段，可以配置把某字段在返回页面前改名为text或value）
+     *
      * @param results
      * @param config
      * @return
