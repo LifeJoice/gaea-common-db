@@ -1,6 +1,5 @@
 package org.gaea.data.dataset;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.gaea.cache.GaeaCacheProcessor;
 import org.gaea.data.dataset.domain.GaeaDataSet;
@@ -29,7 +28,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -76,50 +77,8 @@ public class GaeaDataSetResolver {
         }
         /* 读取XML文件，把DataSet读取和转换处理。 */
         readAndParseXmlDataSet();
-            /* 完成DataSet的XML的加载，接下来缓存 */
+        /* 完成DataSet的XML的加载，接下来缓存 */
         cacheDataSets();
-////        List<GaeaDataSet> results = new ArrayList<GaeaDataSet>();
-//        DocumentBuilder db = null;
-//        Node document = null;
-//        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-////        Resource resource = springApplicationContext.getResource(viewSchemaPath);
-//        try {
-//            File dsXmlFile = ResourceUtils.getFile(filePath);
-//            db = dbf.newDocumentBuilder();
-//            // document是整个XML schema
-//            document = db.parse(dsXmlFile);
-//            // 寻找根节点<ur-schema>
-//            Node rootNode = getRootNode(document);
-//
-//            NodeList nodes = rootNode.getChildNodes();
-//            for (int i = 0; i < nodes.getLength(); i++) {
-//                Node dataSetNode = nodes.item(i);
-//                // xml解析会把各种换行符等解析成元素。统统跳过。
-//                if (!(dataSetNode instanceof Element)) {
-//                    continue;
-//                }
-//                if (DataSetSchemaDefinition.DS_DATASET_NODE_NAME.equals(dataSetNode.getNodeName())) {
-//                    GaeaDataSet dataSet = convertDataSet(dataSetNode);
-//                    if (dataSet == null || StringUtils.isEmpty(dataSet.getId())) {
-//                        logger.warn("格式不正确。对应的DataSet为空或缺失id！" + dataSetNode.toString());
-//                        continue;
-//                    }
-//                    dataSets.put(dataSet.getId(), dataSet);
-//                } else {
-//                    logger.warn("Dataset Xml schema中包含错误数据。包含非dataset信息: <" + dataSetNode.getNodeName() + ">");
-//                }
-//            }
-//        } catch (FileNotFoundException e) {
-//            logger.error("加载Dataset的XML配置文件错误。File path:" + filePath, e);
-//        } catch (ParserConfigurationException e) {
-//            logger.error("解析Dataset的XML配置文件错误。File path:" + filePath, e);
-//        } catch (IOException e) {
-//            logger.error("解析Dataset的XML配置文件发生IO错误。File path:" + filePath, e);
-//        } catch (SAXException e) {
-//            logger.error("解析Dataset的XML配置文件错误。File path:" + filePath, e);
-//        } catch (InvalidDataException e) {
-//            logger.error(e.getMessage(), e);
-//        }
     }
 
     private void readAndParseXmlDataSet() throws ValidationFailedException {
@@ -173,7 +132,7 @@ public class GaeaDataSetResolver {
      */
     private void cacheDataSets() {
         if (dataSets != null && dataSets.size() > 0) {
-            String rootKey = cacheProperties.get("gaea.dataset") + cacheProperties.get("gaea.dataset.schema");
+            String rootKey = cacheProperties.get(GaeaDataSetDefinition.GAEA_DATASET_SCHEMA);
 //            for(GaeaDataSet ds:dataSets.values()){
 //                dsMap.put(ds.getId(),ds.getSql());
 //            }
@@ -183,6 +142,7 @@ public class GaeaDataSetResolver {
 
     /**
      * 转换XML文件中的单个DataSet
+     *
      * @param dataSetNode
      * @return
      * @throws InvalidDataException
@@ -229,7 +189,7 @@ public class GaeaDataSetResolver {
             } else if (DataSetSchemaDefinition.DS_DATASET_DATA_NODE_NAME.equals(n.getNodeName())) {
                 // <data>的解析
                 NodeList list = n.getChildNodes();
-                Map<String,String> data = new HashMap<String, String>();// <data-element>转换出来的map. key=value,value=text
+                List<Map<String, String>> data = new ArrayList<Map<String, String>>();// <data-element>转换出来的map. key=value,value=text
                 for (int j = 0; j < list.getLength(); j++) {
                     Node dataNode = list.item(j);
                     // xml解析会把各种换行符等解析成元素。统统跳过。
@@ -239,26 +199,32 @@ public class GaeaDataSetResolver {
 //                    if (!(dataNode instanceof CharacterData)) {
 //                        continue;
 //                    }
-                    if(DataSetSchemaDefinition.DS_DATASET_DATA_ELEMENT_NODE_NAME.equals(dataNode.getNodeName())){
+                    if (DataSetSchemaDefinition.DS_DATASET_DATA_ELEMENT_NODE_NAME.equals(dataNode.getNodeName())) {
                         // 获取node的属性列表
                         Map<String, String> attributes = GaeaXmlUtils.getAttributes(dataNode);
+                        Map<String,String> newAttributes = new HashMap<String, String>();
                         // 遍历node的属性名
-                        String key=null,value=null;
+                        // 去掉空值
+                        String key = null, value = null;
                         for (String attrName : attributes.keySet()) {
-                            if(DataSetSchemaDefinition.DATA_ELEMENT_ATTR_VALUE.equalsIgnoreCase(attrName)){
-                                key=attributes.get(attrName);
-                            }else if(DataSetSchemaDefinition.DATA_ELEMENT_ATTR_TEXT.equalsIgnoreCase(attrName)){
-                                value=attributes.get(attrName);
+//                            if (DataSetSchemaDefinition.DATA_ELEMENT_ATTR_VALUE.equalsIgnoreCase(attrName)) {
+//                                key = attributes.get(attrName);
+//                            } else if (DataSetSchemaDefinition.DATA_ELEMENT_ATTR_TEXT.equalsIgnoreCase(attrName)) {
+                                value = attributes.get(attrName);
+//                            }
+                            if(StringUtils.isNotEmpty(value)){
+                                newAttributes.put(attrName,value);
                             }
                         }
                         // 键值都有，才放入
-                        if(StringUtils.isNotEmpty(key) && StringUtils.isNotEmpty(value)){
-                            data.put(key,value);
-                        }
+//                        if (StringUtils.isNotEmpty(key) && StringUtils.isNotEmpty(value)) {
+//                            data.put(key, value);
+//                        }
+                        data.add(newAttributes);
                     }
                 }
                 // 放入DataSet
-                dataSet.setSimpleResults(data);
+                dataSet.setStaticResults(data);
             } else {
                 logger.warn("Dataset Xml schema中包含错误数据。包含非dataset信息: <" + dataSetNode.getNodeName() + ">");
             }

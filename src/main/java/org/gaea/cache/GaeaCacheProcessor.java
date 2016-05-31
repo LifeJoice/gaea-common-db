@@ -15,7 +15,9 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Gaea框架的统一的缓存处理器。负责封装指定的第三方缓存系统的处理。
@@ -27,9 +29,9 @@ public class GaeaCacheProcessor {
     @Autowired(required = false)
     private RedisTemplate<String,String> redisTemplate;
 
-    public void put(String key,String value){
+    public void put(String key, String value, long timeOut, TimeUnit timeUnit){
         ValueOperations<String,String> ops = redisTemplate.opsForValue();
-        ops.set(key, value);
+        ops.set(key, value,timeOut, timeUnit);
     }
 
     public <T> void put(final String key, final Map<String,T> map){
@@ -43,5 +45,9 @@ public class GaeaCacheProcessor {
         HashOperations<String,String,T> ops = redisTemplate.opsForHash();
         T value = ops.get(rootKey,hashKey);
         return value;
+    }
+
+    public void cachedByStrategy(GaeaDataSet dataSetDef, List<Map<String, Object>> dataList) {
+        // 按策略缓存。还没想好缓存架构。先放一放吧。
     }
 }

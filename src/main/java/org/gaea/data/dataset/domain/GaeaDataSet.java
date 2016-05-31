@@ -16,11 +16,12 @@ public class GaeaDataSet<T> implements Serializable{
     private List<T> dsResults;// SQL查出来的对象的结果集
     /**
      * 最简单的结果集。键值对。适用于静态的。
+     * (扩展一下，支持多值，不止键值对 by Iverson 2016-5-30 11:37:39)
      * 例如：性别（男女）、业务的一些状态（未审、已审待批、已批）、季节（春夏秋冬）……之类的<p/>
      * Key：应该对应的是页面下拉框的value；<br/>
      * Value：对应下拉框显示的值（但一般不是真实的值）
      */
-    private Map<String,String> simpleResults;
+    private List<Map<String,String>> staticResults;
     /**
      * 缓存类型，具体参考下面的定义。
      * 当前简单分两种：不缓存和静态缓存。
@@ -28,9 +29,11 @@ public class GaeaDataSet<T> implements Serializable{
      */
     private String cacheType;
     public static final String CACHE_TYPE_NONE = "none";// 不缓存
+    public static final String CACHE_TYPE_AUTO = "auto";// 自动缓存。刷新时机由系统决定。
     public static final String CACHE_TYPE_STATIC = "static";// 静态的，系统启动时缓存，并不再刷新。
 //    private boolean isCache;// 是否缓存结果。对于一些静态的、变得比较少的可以缓存。
     private GaeaDataSource dataSource;
+    private String expireTime;// 结果集缓存保留时间。1ms|s|min|d
 
     public String getId() {
         return id;
@@ -56,6 +59,14 @@ public class GaeaDataSet<T> implements Serializable{
         this.dsResults = dsResults;
     }
 
+    public String getExpireTime() {
+        return expireTime;
+    }
+
+    public void setExpireTime(String expireTime) {
+        this.expireTime = expireTime;
+    }
+
     public GaeaDataSource getDataSource() {
         return dataSource;
     }
@@ -64,12 +75,12 @@ public class GaeaDataSet<T> implements Serializable{
         this.dataSource = dataSource;
     }
 
-    public Map<String, String> getSimpleResults() {
-        return simpleResults;
+    public List<Map<String, String>> getStaticResults() {
+        return staticResults;
     }
 
-    public void setSimpleResults(Map<String, String> simpleResults) {
-        this.simpleResults = simpleResults;
+    public void setStaticResults(List<Map<String, String>> staticResults) {
+        this.staticResults = staticResults;
     }
 
     public String getCacheType() {
