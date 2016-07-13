@@ -9,6 +9,10 @@ public interface DataSetSchemaDefinition {
     public static String DS_DATASET_NODE_NAME = "dataset";
     /* DataSet的data-sql */
     public static String DS_DATASET_DATASQL_NODE_NAME = "data-sql";
+    /* DataSet的where */
+    public static String DS_DATASET_WHERE_NODE_NAME = "where";
+    public static String DS_DATASET_CONDITIONSET_NODE_NAME = "condition-set";
+    public static String DS_DATASET_CONDITION_NODE_NAME = "condition";
     /* DataSet的DataSource */
     public static String DS_DATASET_DATASOURCE_NODE_NAME = "data-source";
     public static String DS_DATASET_DATASOURCE_CODE_NODE_NAME = "data-source";

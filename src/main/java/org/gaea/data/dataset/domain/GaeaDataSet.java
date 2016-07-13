@@ -10,7 +10,7 @@ import java.util.Map;
  * 数据集实体。一个数据集对象，其实就是一句SQL和对应的结果集。
  * Created by iverson on 2016/2/23.
  */
-public class GaeaDataSet<T> implements Serializable{
+public class GaeaDataSet<T> implements Serializable {
     private String id;// 类似code。自命名，不是无意义的系统生成。
     private String sql;
     private List<T> dsResults;// SQL查出来的对象的结果集
@@ -21,7 +21,7 @@ public class GaeaDataSet<T> implements Serializable{
      * Key：应该对应的是页面下拉框的value；<br/>
      * Value：对应下拉框显示的值（但一般不是真实的值）
      */
-    private List<Map<String,String>> staticResults;
+    private List<Map<String, String>> staticResults;
     /**
      * 缓存类型，具体参考下面的定义。
      * 当前简单分两种：不缓存和静态缓存。
@@ -31,9 +31,10 @@ public class GaeaDataSet<T> implements Serializable{
     public static final String CACHE_TYPE_NONE = "none";// 不缓存
     public static final String CACHE_TYPE_AUTO = "auto";// 自动缓存。刷新时机由系统决定。
     public static final String CACHE_TYPE_STATIC = "static";// 静态的，系统启动时缓存，并不再刷新。
-//    private boolean isCache;// 是否缓存结果。对于一些静态的、变得比较少的可以缓存。
+    //    private boolean isCache;// 是否缓存结果。对于一些静态的、变得比较少的可以缓存。
     private GaeaDataSource dataSource;
     private String expireTime;// 结果集缓存保留时间。1ms|s|min|d
+    private Where where; // where条件组合
 
     public String getId() {
         return id;
@@ -89,5 +90,13 @@ public class GaeaDataSet<T> implements Serializable{
 
     public void setCacheType(String cacheType) {
         this.cacheType = cacheType;
+    }
+
+    public Where getWhere() {
+        return where;
+    }
+
+    public void setWhere(Where where) {
+        this.where = where;
     }
 }

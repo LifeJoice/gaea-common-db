@@ -2,7 +2,10 @@ package org.gaea.data.dataset;
 
 import org.apache.commons.lang3.StringUtils;
 import org.gaea.cache.GaeaCacheProcessor;
+import org.gaea.data.dataset.domain.Condition;
+import org.gaea.data.dataset.domain.ConditionSet;
 import org.gaea.data.dataset.domain.GaeaDataSet;
+import org.gaea.data.dataset.domain.Where;
 import org.gaea.data.domain.GaeaDataSource;
 import org.gaea.data.xml.DataSetSchemaDefinition;
 import org.gaea.exception.InvalidDataException;
@@ -41,7 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class GaeaDataSetResolver {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(GaeaDataSetResolver.class);
 
     public GaeaDataSetResolver(String filePath) {
         this.filePath = filePath;
@@ -56,10 +59,6 @@ public class GaeaDataSetResolver {
     private GaeaPropertiesReader cacheProperties;
     @Autowired(required = false)
     private GaeaCacheProcessor gaeaCacheProcessor;
-
-//    public GaeaDataSetResolver() {
-//        this.dataSets = new ConcurrentHashMap<String, GaeaDataSet>();
-//    }
 
     public GaeaDataSet getDataSet(String id) {
         return dataSets.get(id);
@@ -133,9 +132,6 @@ public class GaeaDataSetResolver {
     private void cacheDataSets() {
         if (dataSets != null && dataSets.size() > 0) {
             String rootKey = cacheProperties.get(GaeaDataSetDefinition.GAEA_DATASET_SCHEMA);
-//            for(GaeaDataSet ds:dataSets.values()){
-//                dsMap.put(ds.getId(),ds.getSql());
-//            }
             gaeaCacheProcessor.put(rootKey, dataSets);
         }
     }
@@ -186,40 +182,29 @@ public class GaeaDataSetResolver {
                     String sql = sqlData.getData();
                     dataSet.setSql(sql);
                 }
+            } else if (DataSetSchemaDefinition.DS_DATASET_WHERE_NODE_NAME.equals(n.getNodeName())) {
+                // <where>的解析
+                Where whereCondition = convertWhere(n);
+                dataSet.setWhere(whereCondition);
             } else if (DataSetSchemaDefinition.DS_DATASET_DATA_NODE_NAME.equals(n.getNodeName())) {
                 // <data>的解析
                 NodeList list = n.getChildNodes();
                 List<Map<String, String>> data = new ArrayList<Map<String, String>>();// <data-element>转换出来的map. key=value,value=text
                 for (int j = 0; j < list.getLength(); j++) {
                     Node dataNode = list.item(j);
-                    // xml解析会把各种换行符等解析成元素。统统跳过。
-//                    if (StringUtils.isBlank(GaeaStringUtils.cleanFormatChar(dataNode.getTextContent()))) {
-//                        continue;
-//                    }
-//                    if (!(dataNode instanceof CharacterData)) {
-//                        continue;
-//                    }
                     if (DataSetSchemaDefinition.DS_DATASET_DATA_ELEMENT_NODE_NAME.equals(dataNode.getNodeName())) {
                         // 获取node的属性列表
                         Map<String, String> attributes = GaeaXmlUtils.getAttributes(dataNode);
-                        Map<String,String> newAttributes = new HashMap<String, String>();
+                        Map<String, String> newAttributes = new HashMap<String, String>();
                         // 遍历node的属性名
                         // 去掉空值
                         String key = null, value = null;
                         for (String attrName : attributes.keySet()) {
-//                            if (DataSetSchemaDefinition.DATA_ELEMENT_ATTR_VALUE.equalsIgnoreCase(attrName)) {
-//                                key = attributes.get(attrName);
-//                            } else if (DataSetSchemaDefinition.DATA_ELEMENT_ATTR_TEXT.equalsIgnoreCase(attrName)) {
-                                value = attributes.get(attrName);
-//                            }
-                            if(StringUtils.isNotEmpty(value)){
-                                newAttributes.put(attrName,value);
+                            value = attributes.get(attrName);
+                            if (StringUtils.isNotEmpty(value)) {
+                                newAttributes.put(attrName, value);
                             }
                         }
-                        // 键值都有，才放入
-//                        if (StringUtils.isNotEmpty(key) && StringUtils.isNotEmpty(value)) {
-//                            data.put(key, value);
-//                        }
                         data.add(newAttributes);
                     }
                 }
@@ -230,6 +215,56 @@ public class GaeaDataSetResolver {
             }
         }
         return dataSet;
+    }
+
+    /**
+     * 转换XML SCHEMA -> dataset -> where的内容。
+     *
+     * @param whereNode
+     * @return
+     * @throws InvalidDataException
+     */
+    private Where convertWhere(Node whereNode) throws InvalidDataException {
+        Where whereCondition = new Where();
+        Map<String, ConditionSet> conditionSetsMap = new HashMap<String, ConditionSet>();
+        NodeList list = whereNode.getChildNodes();
+        // 遍历<condition-set>
+        for (int i = 0; i < list.getLength(); i++) {
+            Node conditionSetNode = list.item(i);
+            // xml解析会把各种换行符等解析成元素。统统跳过。
+            if (!(conditionSetNode instanceof Element)) {
+                continue;
+            }
+            if (DataSetSchemaDefinition.DS_DATASET_CONDITIONSET_NODE_NAME.equals(conditionSetNode.getNodeName())) {
+                ConditionSet conditionSet = new ConditionSet();
+                List<Condition> conditionsList = new ArrayList<Condition>();
+                // 获取<condition-set>的属性
+                conditionSet = GaeaXmlUtils.copyAttributesToBean(conditionSetNode, conditionSet, ConditionSet.class);
+                NodeList conditionNodes = conditionSetNode.getChildNodes();
+
+                // 遍历condition( <and>,<or>等 )
+                for (int j = 0; j < conditionNodes.getLength(); j++) {
+                    Condition condition = new Condition();
+                    Node conditionNode = conditionNodes.item(j);
+                    // xml解析会把各种换行符等解析成元素。统统跳过。
+                    if (!(conditionNode instanceof Element)) {
+                        continue;
+                    }
+                    // 读取<and>,<or>...等元素属性到bean中
+                    condition = GaeaXmlUtils.copyAttributesToBean(conditionNode, condition, Condition.class);
+                    String name = conditionNode.getNodeName();
+                    /**
+                     * 【重要】 <condition-set>子元素的名(例如<and>)，其实就是条件间的关系操作符
+                     */
+                    condition.setCondOp(name);
+                    conditionsList.add(condition);
+                }
+                conditionSet.setConditions(conditionsList);
+                conditionSetsMap.put(conditionSet.getId(), conditionSet);
+            }
+        }
+        whereCondition.setConditionSets(conditionSetsMap);
+        return whereCondition;
     }
 
     private Node getRootNode(Node document) throws ValidationFailedException {
