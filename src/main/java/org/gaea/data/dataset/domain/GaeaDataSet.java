@@ -35,6 +35,7 @@ public class GaeaDataSet<T> implements Serializable {
     private GaeaDataSource dataSource;
     private String expireTime;// 结果集缓存保留时间。1ms|s|min|d
     private Where where; // where条件组合
+    private String primaryTable; // 本DataSet的主表。可能用它的id作为排序依据等。
 
     public String getId() {
         return id;
@@ -98,5 +99,13 @@ public class GaeaDataSet<T> implements Serializable {
 
     public void setWhere(Where where) {
         this.where = where;
+    }
+
+    public String getPrimaryTable() {
+        return primaryTable;
+    }
+
+    public void setPrimaryTable(String primaryTable) {
+        this.primaryTable = primaryTable;
     }
 }
