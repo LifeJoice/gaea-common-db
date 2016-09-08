@@ -114,7 +114,7 @@ public class GaeaDataSetServiceImpl implements GaeaDataSetService {
                 boolean hasRenameTextName = false;
                 boolean hasRenameValueName = false;
                 for (String itemName : dsRow.keySet()) {
-                    String itemValue = dsRow.get(itemName).toString();
+                    String itemValue = dsRow.get(itemName) == null ? "" : dsRow.get(itemName).toString();
                     String newItemName = "";
                     // 统一处理，把结果集的key都改为小写。
                     newItemName = itemName.toLowerCase();
