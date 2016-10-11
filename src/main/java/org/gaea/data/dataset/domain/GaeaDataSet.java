@@ -4,7 +4,6 @@ import org.gaea.data.domain.GaeaDataSource;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 数据集实体。一个数据集对象，其实就是一句SQL和对应的结果集。
@@ -21,7 +20,7 @@ public class GaeaDataSet<T> implements Serializable {
      * Key：应该对应的是页面下拉框的value；<br/>
      * Value：对应下拉框显示的值（但一般不是真实的值）
      */
-    private List<Map<String, String>> staticResults;
+    private List<DataItem> staticResults;
     /**
      * 缓存类型，具体参考下面的定义。
      * 当前简单分两种：不缓存和静态缓存。
@@ -77,11 +76,11 @@ public class GaeaDataSet<T> implements Serializable {
         this.dataSource = dataSource;
     }
 
-    public List<Map<String, String>> getStaticResults() {
+    public List<DataItem> getStaticResults() {
         return staticResults;
     }
 
-    public void setStaticResults(List<Map<String, String>> staticResults) {
+    public void setStaticResults(List<DataItem> staticResults) {
         this.staticResults = staticResults;
     }
 

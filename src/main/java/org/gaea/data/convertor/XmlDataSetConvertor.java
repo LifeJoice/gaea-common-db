@@ -1,10 +1,7 @@
 package org.gaea.data.convertor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.gaea.data.dataset.domain.Condition;
-import org.gaea.data.dataset.domain.ConditionSet;
-import org.gaea.data.dataset.domain.GaeaDataSet;
-import org.gaea.data.dataset.domain.Where;
+import org.gaea.data.dataset.domain.*;
 import org.gaea.data.domain.GaeaDataSource;
 import org.gaea.data.xml.DataSetSchemaDefinition;
 import org.gaea.exception.InvalidDataException;
@@ -85,10 +82,12 @@ public class XmlDataSetConvertor {
             } else if (DataSetSchemaDefinition.DS_DATASET_DATA_NODE_NAME.equals(n.getNodeName())) {
                 // <data>的解析
                 NodeList list = n.getChildNodes();
-                List<Map<String, String>> data = new ArrayList<Map<String, String>>();// <data-element>转换出来的map. key=value,value=text
+                List<DataItem> data = new ArrayList<DataItem>();// <data-element>转换出来的map. key=value,value=text
                 for (int j = 0; j < list.getLength(); j++) {
                     Node dataNode = list.item(j);
+                    // 如果在数据集的配置中，直接设定数据集的值
                     if (DataSetSchemaDefinition.DS_DATASET_DATA_ELEMENT_NODE_NAME.equals(dataNode.getNodeName())) {
+                        DataItem dataItem = new DataItem();
                         // 获取node的属性列表
                         Map<String, String> attributes = GaeaXmlUtils.getAttributes(dataNode);
                         Map<String, String> newAttributes = new HashMap<String, String>();
@@ -96,12 +95,35 @@ public class XmlDataSetConvertor {
                         // 去掉空值
                         String key = null, value = null;
                         for (String attrName : attributes.keySet()) {
+                            /**
+                             * if < data-element >的属性名=value
+                             *      获取值，放入 dataItem.value
+                             * else if < data-element >的属性名=text
+                             *      获取值，放入 dataItem.text
+                             * else
+                             *      其他的属性拼成map，按key=属性名,value=属性值 放入dataItem.otherValues
+                             */
                             value = attributes.get(attrName);
-                            if (StringUtils.isNotEmpty(value)) {
+                            if (StringUtils.isEmpty(value)) {
+                                continue;
+                            }
+                            if (DataSetSchemaDefinition.DATA_ELEMENT_ATTR_VALUE.equalsIgnoreCase(attrName)) {
+//                                if (StringUtils.isNotEmpty(value)) {
+                                dataItem.setValue(value);
+//                                }
+                            } else if (DataSetSchemaDefinition.DATA_ELEMENT_ATTR_TEXT.equalsIgnoreCase(attrName)) {
+//                                value = attributes.get(attrName);
+//                                if (StringUtils.isNotEmpty(value)) {
+                                dataItem.setText(value);
+//                                }
+                            } else {
+//                                value = attributes.get(attrName);
+//                                if (StringUtils.isNotEmpty(value)) {
                                 newAttributes.put(attrName, value);
+//                                }
                             }
                         }
-                        data.add(newAttributes);
+                        data.add(dataItem);
                     }
                 }
                 // 放入DataSet
