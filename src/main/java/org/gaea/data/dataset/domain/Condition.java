@@ -17,6 +17,7 @@ public class Condition implements Serializable {
     public static final String FIELD_OP_LE = "le";
     public static final String FIELD_OP_GE = "ge";
     private String condOp;// 不同条件间的操作符，例如：and,or,in等
+    private String placeholder; // SQL里面的占位符。如果有的话，当前condition产生的查询条件会替换占位符的内容。
 
     public String getField() {
         return field;
@@ -48,5 +49,13 @@ public class Condition implements Serializable {
 
     public void setCondOp(String condOp) {
         this.condOp = condOp;
+    }
+
+    public String getPlaceholder() {
+        return placeholder;
+    }
+
+    public void setPlaceholder(String placeholder) {
+        this.placeholder = placeholder;
     }
 }

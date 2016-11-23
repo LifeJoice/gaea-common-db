@@ -1,7 +1,7 @@
 package org.gaea.data.dataset;
 
 import org.apache.commons.lang3.StringUtils;
-import org.gaea.cache.GaeaCacheProcessor;
+import org.gaea.cache.GaeaCacheOperator;
 import org.gaea.data.convertor.XmlDataSetConvertor;
 import org.gaea.data.dataset.domain.GaeaDataSet;
 import org.gaea.data.xml.DataSetSchemaDefinition;
@@ -57,7 +57,7 @@ public class GaeaDataSetResolver {
     @Qualifier("cachePropReader")
     private GaeaPropertiesReader cacheProperties;
     @Autowired(required = false)
-    private GaeaCacheProcessor gaeaCacheProcessor;
+    private GaeaCacheOperator gaeaCacheOperator;
 
     public GaeaDataSet getDataSet(String id) {
         return dataSets.get(id);
@@ -131,7 +131,7 @@ public class GaeaDataSetResolver {
     private void cacheDataSets() {
         if (dataSets != null && dataSets.size() > 0) {
             String rootKey = cacheProperties.get(GaeaDataSetDefinition.GAEA_DATASET_SCHEMA);
-            gaeaCacheProcessor.put(rootKey, dataSets);
+            gaeaCacheOperator.put(rootKey, dataSets);
         }
     }
 
