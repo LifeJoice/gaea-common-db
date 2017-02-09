@@ -1,6 +1,9 @@
 package org.gaea.data.dataset.service;
 
+import org.gaea.data.dataset.domain.GaeaDataSet;
 import org.gaea.data.dataset.domain.GaeaDsResultConfig;
+import org.gaea.exception.ProcessFailedException;
+import org.gaea.exception.SysInitException;
 import org.gaea.exception.ValidationFailedException;
 
 import java.util.List;
@@ -14,4 +17,10 @@ public interface GaeaDataSetService {
     List<Map<String, Object>> getCommonResults(String id, String aliasObjName) throws ValidationFailedException;
 
     List<Map<String, Object>> getCommonResults(GaeaDsResultConfig resultConfig) throws ValidationFailedException;
+
+    Map<String, GaeaDataSet> getAllDataSets() throws SysInitException;
+
+    void resetDataSets(Map<String, GaeaDataSet> dataSets) throws ProcessFailedException;
+
+    void cacheDataSet(GaeaDataSet dataSet) throws ProcessFailedException;
 }

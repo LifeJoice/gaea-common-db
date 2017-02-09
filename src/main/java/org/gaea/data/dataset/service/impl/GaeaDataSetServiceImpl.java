@@ -2,11 +2,15 @@ package org.gaea.data.dataset.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
 import org.gaea.cache.GaeaCacheOperator;
+import org.gaea.cache.util.GaeaCommonDbDataSetUtils;
 import org.gaea.data.dataset.GaeaDataSetDefinition;
 import org.gaea.data.dataset.GaeaDataSetResolver;
+import org.gaea.data.dataset.domain.DataItem;
 import org.gaea.data.dataset.domain.GaeaDataSet;
 import org.gaea.data.dataset.domain.GaeaDsResultConfig;
 import org.gaea.data.dataset.service.GaeaDataSetService;
+import org.gaea.exception.ProcessFailedException;
+import org.gaea.exception.SysInitException;
 import org.gaea.exception.ValidationFailedException;
 import org.gaea.util.GaeaPropertiesReader;
 import org.slf4j.Logger;
@@ -50,11 +54,10 @@ public class GaeaDataSetServiceImpl implements GaeaDataSetService {
      * 2. text , value作为数据集的关键字，提供可配置和转换。（即如果查询SQL结果没有text、value字段，可以配置把某字段在返回页面前改名为text或value）
      *
      * @param resultConfig
-     * @return
+     * @return 行记录的list。list中每一项（map），是每行的column:value
      * @throws ValidationFailedException
      */
     public List<Map<String, Object>> getCommonResults(GaeaDsResultConfig resultConfig) throws ValidationFailedException {
-//        Map<String, String> results = new HashMap<String, String>();
         List<Map<String, Object>> results = null;
         if (gaeaDataSetResolver == null) {
             logger.warn(" Gaea的数据集处理器 GaeaDataSetResolver 未初始化！可能影响系统的整体功能！");
@@ -63,38 +66,84 @@ public class GaeaDataSetServiceImpl implements GaeaDataSetService {
             logger.warn("缺少Spring的NamedParameterJdbcTemplate bean，无法进行Gaea的数据集框架服务！");
         }
         Map<String, String> params = new HashMap<String, String>();
-//        try {
-//            gaeaDataSetResolver.getSystemDataSets();
         // 获取数据集定义。可能从数据库读，也可能从缓存获取。
         GaeaDataSet dataSetDef = gaeaDataSetResolver.getDataSet(resultConfig.getDsId());
         GaeaDataSet dsData = null;
         /* 根据数据集定义的SQL（或者定义静态数据）获取数据 */
-        if (GaeaDataSet.CACHE_TYPE_STATIC.equals(dataSetDef.getCacheType())) { // 如果定义的是静态数据集，优先从缓存取，并且不刷新。
-            dsData = gaeaCacheOperator.getHashValue(cacheProperties.get(GaeaDataSetDefinition.GAEA_DATASET_SCHEMA), resultConfig.getDsId());
-            results = dsData.getStaticResults();
-        } else if (GaeaDataSet.CACHE_TYPE_NONE.equals(dataSetDef.getCacheType())) { // 如果定义是不缓存，每次都查询数据。
+        if (GaeaDataSet.CACHE_TYPE_STATIC.equals(dataSetDef.getCacheType())) {
+            // 如果定义的是静态数据集，优先从缓存取，并且不刷新。
+            dsData = gaeaCacheOperator.getHashValue(cacheProperties.get(GaeaDataSetDefinition.GAEA_DATASET_SCHEMA), resultConfig.getDsId(), GaeaDataSet.class);
+            List<DataItem> staticResults = dsData.getStaticResults();
+            results = GaeaCommonDbDataSetUtils.convertStaticDs(staticResults);
+        } else if (GaeaDataSet.CACHE_TYPE_NONE.equals(dataSetDef.getCacheType())) {
+            // 如果定义是不缓存，每次都查询数据。
             results = jdbcTemplate.queryForList(dataSetDef.getSql(), params);
-        } else if (GaeaDataSet.CACHE_TYPE_AUTO.equals(dataSetDef.getCacheType())) { // 自动缓存
-            dsData = gaeaCacheOperator.getHashValue(cacheProperties.get(GaeaDataSetDefinition.GAEA_DATASET_SCHEMA), resultConfig.getDsId());
+        } else if (GaeaDataSet.CACHE_TYPE_AUTO.equals(dataSetDef.getCacheType())) {
+            // 自动缓存
+            dsData = gaeaCacheOperator.getHashValue(cacheProperties.get(GaeaDataSetDefinition.GAEA_DATASET_SCHEMA), resultConfig.getDsId(), GaeaDataSet.class);
             if (dsData == null || dsData.getDsResults() == null) {
                 results = jdbcTemplate.queryForList(dataSetDef.getSql(), params);
                 // 根据具体缓存策略，进行缓存处理。
                 gaeaCacheOperator.cachedByStrategy(dataSetDef, results);
             }
         }
-//        results = jdbcTemplate.queryForList(dataSetDef.getSql(), params);
+        // 数据进行清洗、处理
         results = reconstruct(results, resultConfig);
-//        GaeaDataSet ds = gaeaCacheProcessor.getHashValue(cacheProperties.get(GaeaDataSetDefinition.GAEA_DATASET_SCHEMA), "DS_IS_ENABLED");
-//        for (Object key : dsData.getStaticResults().keySet()) {
-//            System.out.println(" key: " + key + " value: " + dsData.getStaticResults().get(key));
-//        }
-        for (Map map : results) {
-            System.out.println(" text: " + map.get("text") + " value: " + map.get("value"));
+        // debug
+        if (logger.isTraceEnabled()) {
+            for (Map map : results) {
+                logger.trace(" text: " + map.get("text") + " value: " + map.get("value"));
+            }
         }
-//        } catch (ValidationFailedException e) {
-//            throw new ValidationFailedException("获取Gaea数据集系统的数据集失败！-->" + e.getMessage(), e);
-//        }
         return results;
+    }
+
+    /**
+     * 获取系统缓存的所有数据集定义。
+     *
+     * @return
+     * @throws SysInitException
+     */
+    public Map<String, GaeaDataSet> getAllDataSets() throws SysInitException {
+        String dsRootKey = cacheProperties.get(GaeaDataSetDefinition.GAEA_DATASET_SCHEMA);
+        if (StringUtils.isEmpty(dsRootKey)) {
+            throw new SysInitException("获取不到系统配置的缓存DataSet的根key。获取缓存数据集失败！配置项：" + GaeaDataSetDefinition.GAEA_DATASET_SCHEMA);
+        }
+        Map<String, GaeaDataSet> results = gaeaCacheOperator.getHashAll(dsRootKey, GaeaDataSet.class);
+        return results;
+    }
+
+    /**
+     * 重置缓存的数据集。包括清空当前的，写入新的。
+     *
+     * @param dataSets
+     * @throws ProcessFailedException
+     */
+    @Override
+    public void resetDataSets(Map<String, GaeaDataSet> dataSets) throws ProcessFailedException {
+        String dsRootKey = cacheProperties.get(GaeaDataSetDefinition.GAEA_DATASET_SCHEMA);
+        if (StringUtils.isEmpty(dsRootKey)) {
+            throw new ProcessFailedException("获取不到系统配置的缓存DataSet的根key。更新缓存数据集失败！配置项：" + GaeaDataSetDefinition.GAEA_DATASET_SCHEMA);
+        }
+        // 删除缓存所有数据集
+        gaeaCacheOperator.delete(dsRootKey);
+        // 放入缓存
+        gaeaCacheOperator.put(dsRootKey, dataSets, GaeaDataSet.class);
+        // 更新gaeaDataSetResolver的dataset。这个类似一个一级缓存。其实是临时的。以后需要改掉。
+        gaeaDataSetResolver.setDataSet(dataSets);
+    }
+
+    @Override
+    public void cacheDataSet(GaeaDataSet dataSet) throws ProcessFailedException {
+        String dsRootKey = cacheProperties.get(GaeaDataSetDefinition.GAEA_DATASET_SCHEMA);
+        if (StringUtils.isEmpty(dsRootKey)) {
+            throw new ProcessFailedException("获取不到系统配置的缓存DataSet的根key。更新缓存数据集失败！配置项：" + GaeaDataSetDefinition.GAEA_DATASET_SCHEMA);
+        }
+        if (dataSet == null || StringUtils.isEmpty(dataSet.getId())) {
+            throw new IllegalArgumentException("数据集(或数据集的id)为空！无法放入缓存！");
+        }
+        // 放入缓存
+        gaeaCacheOperator.putHashValue(dsRootKey, dataSet.getId(), dataSet, GaeaDataSet.class);
     }
 
     /**
@@ -139,11 +188,11 @@ public class GaeaDataSetServiceImpl implements GaeaDataSetService {
         return newResults;
     }
 
-    public GaeaPropertiesReader getCacheProperties() {
-        return cacheProperties;
-    }
-
-    public void setCacheProperties(GaeaPropertiesReader cacheProperties) {
-        this.cacheProperties = cacheProperties;
-    }
+//    public GaeaPropertiesReader getCacheProperties() {
+//        return cacheProperties;
+//    }
+//
+//    public void setCacheProperties(GaeaPropertiesReader cacheProperties) {
+//        this.cacheProperties = cacheProperties;
+//    }
 }

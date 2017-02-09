@@ -35,6 +35,11 @@ public class GaeaDataSet<T> implements Serializable {
     private String expireTime;// 结果集缓存保留时间。1ms|s|min|d
     private Where where; // where条件组合
     private String primaryTable; // 本DataSet的主表。可能用它的id作为排序依据等。
+    /**
+     * 校验方式。 0：不校验 1：校验,无对应的当没权限. 2：校验,无对应的当有权限.
+     */
+    private Integer authorityType;
+    private List<DsAuthority> dsAuthorities;
 
     public String getId() {
         return id;
@@ -106,5 +111,21 @@ public class GaeaDataSet<T> implements Serializable {
 
     public void setPrimaryTable(String primaryTable) {
         this.primaryTable = primaryTable;
+    }
+
+    public Integer getAuthorityType() {
+        return authorityType;
+    }
+
+    public void setAuthorityType(Integer authorityType) {
+        this.authorityType = authorityType;
+    }
+
+    public List<DsAuthority> getDsAuthorities() {
+        return dsAuthorities;
+    }
+
+    public void setDsAuthorities(List<DsAuthority> dsAuthorities) {
+        this.dsAuthorities = dsAuthorities;
     }
 }
