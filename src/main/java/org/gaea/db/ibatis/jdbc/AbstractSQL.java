@@ -84,6 +84,29 @@ public abstract class AbstractSQL<T> {
         return getSelf();
     }
 
+    /**
+     * 如果有aliasName, 把table当做一个子查询，包裹table，并加上一个别名。
+     * 例如：
+     * <p>
+     * select * from ( select u.* from user u) subQuery
+     * <br/>其中，subQuery就是alias
+     * </p>
+     * by Iverson 2017-2-21 10:58:57
+     *
+     * @param table
+     * @param aliasName 把table当做一个子查询，包裹table，并加上一个别名。
+     * @return
+     */
+    public T FROM(String table, String aliasName) {
+        if (aliasName == null || "".equalsIgnoreCase(aliasName.trim())) {
+            throw new IllegalArgumentException("组装SQL的from的aliasName不允许为空！");
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("(").append(table).append(")").append(" ").append(aliasName);
+        sql().tables.add(sb.toString());
+        return getSelf();
+    }
+
     public T JOIN(String join) {
         sql().join.add(join);
         return getSelf();
