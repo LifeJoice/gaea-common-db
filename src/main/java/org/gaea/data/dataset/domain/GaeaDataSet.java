@@ -38,7 +38,7 @@ public class GaeaDataSet<T> implements Serializable {
     /**
      * 校验方式。 0：不校验 1：校验,无对应的当没权限. 2：校验,无对应的当有权限.
      */
-    private Integer authorityType;
+    private Integer authorityType = 0; // 默认不校验
     private List<DsAuthority> dsAuthorities;
 
     public String getId() {
