@@ -104,6 +104,8 @@ public class GaeaDataSetResolver implements ApplicationListener<ContextRefreshed
                     readAndParseXmlDataSet(r);
                 }
             }
+            /* 先清空数据集缓存 */
+            cleanCacheDataSets();
             /* 完成DataSet的XML的加载，接下来缓存 */
             cacheDataSets();
             /* 触发完成事件。让其他操作继续，例如：写入数据库。 */
@@ -177,6 +179,15 @@ public class GaeaDataSetResolver implements ApplicationListener<ContextRefreshed
             String rootKey = cacheProperties.get(GaeaDataSetDefinition.GAEA_DATASET_SCHEMA);
             gaeaCacheOperator.put(rootKey, dataSets, GaeaDataSet.class);
         }
+    }
+
+    /**
+     * 把从XML文件中读出来的DataSet缓存起来。
+     */
+    private void cleanCacheDataSets() {
+        String rootKey = cacheProperties.get(GaeaDataSetDefinition.GAEA_DATASET_SCHEMA);
+        // 删除缓存所有数据集
+        gaeaCacheOperator.delete(rootKey);
     }
 
     private Node getRootNode(Node document) throws ValidationFailedException {
