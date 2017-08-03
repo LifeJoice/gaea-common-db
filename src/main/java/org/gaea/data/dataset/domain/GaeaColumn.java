@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * Column支持嵌套。只要把type设置为group即可以分组。（未实现）
- * Created by Iverson on 2015/6/29.
+ * Created by Iverson on 2017-8-3.
  */
 public class GaeaColumn implements Serializable {
     private String id;
