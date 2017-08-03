@@ -11,6 +11,7 @@ import org.gaea.util.GaeaXmlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.w3c.dom.CharacterData;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -48,6 +49,9 @@ public class XmlDataSetConvertor {
             String errorMsg = "自动转换XML元素<dataset>的属性错误！";
             throw new InvalidDataException(errorMsg, e);
         }
+        if (StringUtils.isEmpty(dataSet.getId())) {
+            throw new InvalidDataException("XML数据集定义的id不允许为空！");
+        }
         for (int i = 0; i < nodes.getLength(); i++) {
             Node n = nodes.item(i);
             // xml解析会把各种换行符等解析成元素。统统跳过。
@@ -75,6 +79,10 @@ public class XmlDataSetConvertor {
                     String sql = sqlData.getData();
                     dataSet.setSql(sql);
                 }
+            } else if (DataSetSchemaDefinition.DS_DATASET_COLUMNS_DEFINE_NODE_NAME.equals(n.getNodeName())) {
+                // <columns-define>的解析
+                LinkedCaseInsensitiveMap<GaeaColumn> columnsMap = convertColumnsDefine(n);
+                dataSet.setColumns(columnsMap);
             } else if (DataSetSchemaDefinition.DS_DATASET_WHERE_NODE_NAME.equals(n.getNodeName())) {
                 // <where>的解析
                 Where whereCondition = convertWhere(n);
@@ -183,5 +191,33 @@ public class XmlDataSetConvertor {
         }
         whereCondition.setConditionSets(conditionSetsMap);
         return whereCondition;
+    }
+
+    /**
+     * 转换XML SCHEMA -> dataset -> columns-define的内容。
+     *
+     * @param columnsNode
+     * @return Map< db_column_name : schemaColumn >
+     * @throws InvalidDataException
+     */
+    private LinkedCaseInsensitiveMap<GaeaColumn> convertColumnsDefine(Node columnsNode) throws InvalidDataException {
+        // new一个大小写不敏感的Map
+        LinkedCaseInsensitiveMap<GaeaColumn> columnsMap = new LinkedCaseInsensitiveMap<GaeaColumn>();
+        NodeList list = columnsNode.getChildNodes();
+        // 遍历<columns-define>
+        for (int i = 0; i < list.getLength(); i++) {
+            Node columnNode = list.item(i);
+            // xml解析会把各种换行符等解析成元素。统统跳过。
+            if (!(columnNode instanceof Element)) {
+                continue;
+            }
+            if (DataSetSchemaDefinition.DS_DATASET_COLUMN_NODE_NAME.equals(columnNode.getNodeName())) {
+                GaeaColumn gaeaColumn = new GaeaColumn();
+                // 获取<condition-set>的属性
+                GaeaXmlUtils.copyAttributesToBean(columnNode, gaeaColumn, GaeaColumn.class);
+                columnsMap.put(gaeaColumn.getDbColumnName(), gaeaColumn);
+            }
+        }
+        return columnsMap;
     }
 }

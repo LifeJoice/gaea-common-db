@@ -4,6 +4,7 @@ import org.gaea.data.domain.GaeaDataSource;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 数据集实体。一个数据集对象，其实就是一句SQL和对应的结果集。
@@ -26,7 +27,7 @@ public class GaeaDataSet<T> implements Serializable {
      * 当前简单分两种：不缓存和静态缓存。
      * 未来扩展了事件机制后，可以事件触发刷新，则可以对一般SQL结果集进行缓存（例如产品分类等）
      */
-    private String cacheType;
+    private String cacheType = CACHE_TYPE_NONE;
     public static final String CACHE_TYPE_NONE = "none";// 不缓存
     public static final String CACHE_TYPE_AUTO = "auto";// 自动缓存。刷新时机由系统决定。
     public static final String CACHE_TYPE_STATIC = "static";// 静态的，系统启动时缓存，并不再刷新。
@@ -40,6 +41,8 @@ public class GaeaDataSet<T> implements Serializable {
      */
     private Integer authorityType = 0; // 默认不校验
     private List<DsAuthority> dsAuthorities;
+    /* 列（字段）的定义和转换等 */
+    private Map<String, GaeaColumn> columns; // Map< db_column_name : schemaColumn >
 
     public String getId() {
         return id;
@@ -127,5 +130,13 @@ public class GaeaDataSet<T> implements Serializable {
 
     public void setDsAuthorities(List<DsAuthority> dsAuthorities) {
         this.dsAuthorities = dsAuthorities;
+    }
+
+    public Map<String, GaeaColumn> getColumns() {
+        return columns;
+    }
+
+    public void setColumns(Map<String, GaeaColumn> columns) {
+        this.columns = columns;
     }
 }
