@@ -56,7 +56,7 @@ public class GaeaDateTimeLongIDGenerator implements IdentifierGenerator, Configu
                 String dateTime = DateFormatUtils.format(new Date(), "yyMMddHHmmss");
                 // 生成随机码，不考虑从ASCII码生成，因为可能特殊字符在前端可能各种冲突。
                 String randomNum = RandomStringUtils.random(DEFAULT_RANDOM_LENGTH, false, true);
-                return dateTime + randomNum;
+                return Long.parseLong(dateTime + randomNum);
             }
             return null;
         }
