@@ -1,5 +1,6 @@
 package org.gaea.data.dataset.domain;
 
+import org.gaea.data.dataset.format.domain.GaeaDataFormat;
 import org.gaea.data.domain.GaeaDataSource;
 
 import java.io.Serializable;
@@ -43,6 +44,11 @@ public class GaeaDataSet<T> implements Serializable {
     private List<DsAuthority> dsAuthorities;
     /* 列（字段）的定义和转换等 */
     private Map<String, GaeaColumn> columns; // Map< db_column_name : schemaColumn >
+    /**
+     * 数据格式化定义
+     * 例如：可以把结果集格式化成特定的json格式（树状等）。
+     */
+    private GaeaDataFormat dataFormat;
 
     public String getId() {
         return id;
@@ -138,5 +144,13 @@ public class GaeaDataSet<T> implements Serializable {
 
     public void setColumns(Map<String, GaeaColumn> columns) {
         this.columns = columns;
+    }
+
+    public GaeaDataFormat getDataFormat() {
+        return dataFormat;
+    }
+
+    public void setDataFormat(GaeaDataFormat dataFormat) {
+        this.dataFormat = dataFormat;
     }
 }

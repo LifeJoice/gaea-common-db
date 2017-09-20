@@ -6,11 +6,11 @@
 
     <groupId>org.gaea</groupId>
     <artifactId>gaea-common-db</artifactId>
-    <version>0.5.1.0-SNAPSHOT</version>
+    <version>0.5.2.0-SNAPSHOT</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jdkLevel>1.6</jdkLevel>
-        <gaea.common.version>0.1-SNAPSHOT</gaea.common.version>
+        <gaea.common.version>0.5.1.0-SNAPSHOT</gaea.common.version>
         <spring.version>4.2.1.RELEASE</spring.version>
         <hibernate.version>4.3.11.Final</hibernate.version>
     </properties>

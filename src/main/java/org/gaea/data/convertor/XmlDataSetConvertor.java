@@ -1,7 +1,9 @@
 package org.gaea.data.convertor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.gaea.data.dataset.convertor.XmlDataFormatConvertor;
 import org.gaea.data.dataset.domain.*;
+import org.gaea.data.dataset.format.domain.GaeaDataFormat;
 import org.gaea.data.domain.GaeaDataSource;
 import org.gaea.data.xml.DataSetSchemaDefinition;
 import org.gaea.exception.InvalidDataException;
@@ -10,6 +12,7 @@ import org.gaea.util.GaeaStringUtils;
 import org.gaea.util.GaeaXmlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.w3c.dom.CharacterData;
@@ -29,6 +32,8 @@ import java.util.Map;
 @Component
 public class XmlDataSetConvertor {
     private final Logger logger = LoggerFactory.getLogger(XmlDataSetConvertor.class);
+    @Autowired
+    private XmlDataFormatConvertor xmlDataFormatConvertor;
 
     /**
      * 转换XML文件中的单个DataSet
@@ -136,6 +141,10 @@ public class XmlDataSetConvertor {
                 }
                 // 放入DataSet
                 dataSet.setStaticResults(data);
+            } else if (DataSetSchemaDefinition.DS_DATAFORMAT.equals(n.getNodeName())) {
+                // <data-format>的解析
+                GaeaDataFormat gaeaDataFormat = xmlDataFormatConvertor.convert(n);
+                dataSet.setDataFormat(gaeaDataFormat);
             } else {
                 logger.warn("Dataset Xml schema中包含错误数据。包含非dataset信息: <" + dataSetNode.getNodeName() + ">");
             }
@@ -162,35 +171,64 @@ public class XmlDataSetConvertor {
                 continue;
             }
             if (DataSetSchemaDefinition.DS_DATASET_CONDITIONSET_NODE_NAME.equals(conditionSetNode.getNodeName())) {
-                ConditionSet conditionSet = new ConditionSet();
-                List<Condition> conditionsList = new ArrayList<Condition>();
-                // 获取<condition-set>的属性
-                conditionSet = GaeaXmlUtils.copyAttributesToBean(conditionSetNode, conditionSet, ConditionSet.class);
-                NodeList conditionNodes = conditionSetNode.getChildNodes();
-
-                // 遍历condition( <and>,<or>等 )
-                for (int j = 0; j < conditionNodes.getLength(); j++) {
-                    Condition condition = new Condition();
-                    Node conditionNode = conditionNodes.item(j);
-                    // xml解析会把各种换行符等解析成元素。统统跳过。
-                    if (!(conditionNode instanceof Element)) {
-                        continue;
-                    }
-                    // 读取<and>,<or>...等元素属性到bean中
-                    condition = GaeaXmlUtils.copyAttributesToBean(conditionNode, condition, Condition.class);
-                    String name = conditionNode.getNodeName();
-                    /**
-                     * 【重要】 <condition-set>子元素的名(例如<and>)，其实就是条件间的关系操作符
-                     */
-                    condition.setCondOp(name);
-                    conditionsList.add(condition);
-                }
-                conditionSet.setConditions(conditionsList);
+                ConditionSet conditionSet = convertConditionSet(conditionSetNode);
+//                ConditionSet conditionSet = new ConditionSet();
+//                List<Condition> conditionsList = new ArrayList<Condition>();
+//                // 获取<condition-set>的属性
+//                conditionSet = GaeaXmlUtils.copyAttributesToBean(conditionSetNode, conditionSet, ConditionSet.class);
+//                NodeList conditionNodes = conditionSetNode.getChildNodes();
+//
+//                // 遍历condition( <and>,<or>等 )
+//                for (int j = 0; j < conditionNodes.getLength(); j++) {
+//                    Condition condition = new Condition();
+//                    Node conditionNode = conditionNodes.item(j);
+//                    // xml解析会把各种换行符等解析成元素。统统跳过。
+//                    if (!(conditionNode instanceof Element)) {
+//                        continue;
+//                    }
+//                    // 读取<and>,<or>...等元素属性到bean中
+//                    condition = GaeaXmlUtils.copyAttributesToBean(conditionNode, condition, Condition.class);
+//                    String name = conditionNode.getNodeName();
+//                    /**
+//                     * 【重要】 <condition-set>子元素的名(例如<and>)，其实就是条件间的关系操作符
+//                     */
+//                    condition.setCondOp(name);
+//                    conditionsList.add(condition);
+//                }
+//                conditionSet.setConditions(conditionsList);
                 conditionSetsMap.put(conditionSet.getId(), conditionSet);
             }
         }
         whereCondition.setConditionSets(conditionSetsMap);
         return whereCondition;
+    }
+
+    public ConditionSet convertConditionSet(Node conditionSetNode) throws InvalidDataException {
+        ConditionSet conditionSet = new ConditionSet();
+        List<Condition> conditionsList = new ArrayList<Condition>();
+        // 获取<condition-set>的属性
+        conditionSet = GaeaXmlUtils.copyAttributesToBean(conditionSetNode, conditionSet, ConditionSet.class);
+        NodeList conditionNodes = conditionSetNode.getChildNodes();
+
+        // 遍历condition( <and>,<or>等 )
+        for (int j = 0; j < conditionNodes.getLength(); j++) {
+            Condition condition = new Condition();
+            Node conditionNode = conditionNodes.item(j);
+            // xml解析会把各种换行符等解析成元素。统统跳过。
+            if (!(conditionNode instanceof Element)) {
+                continue;
+            }
+            // 读取<and>,<or>...等元素属性到bean中
+            condition = GaeaXmlUtils.copyAttributesToBean(conditionNode, condition, Condition.class);
+            String name = conditionNode.getNodeName();
+            /**
+             * 【重要】 <condition-set>子元素的名(例如<and>)，其实就是条件间的关系操作符
+             */
+            condition.setCondOp(name);
+            conditionsList.add(condition);
+        }
+        conditionSet.setConditions(conditionsList);
+        return conditionSet;
     }
 
     /**

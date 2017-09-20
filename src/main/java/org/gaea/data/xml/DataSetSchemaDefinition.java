@@ -19,6 +19,9 @@ public interface DataSetSchemaDefinition {
     /* DataSet的DataSource */
     public static String DS_DATASET_DATASOURCE_NODE_NAME = "data-source";
     public static String DS_DATASET_DATASOURCE_CODE_NODE_NAME = "data-source";
+    /* DataSet的data-format */
+    public static String DS_DATAFORMAT = "data-format";
+    public static String DS_DATAFORMAT_NODE = "node";
     /* DataSet的data */
     public static String DS_DATASET_DATA_NODE_NAME = "data";
     public static String DS_DATASET_DATA_ELEMENT_NODE_NAME = "data-element";
