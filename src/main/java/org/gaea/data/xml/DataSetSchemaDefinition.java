@@ -16,9 +16,18 @@ public interface DataSetSchemaDefinition {
     public static String DS_DATASET_WHERE_NODE_NAME = "where";
     public static String DS_DATASET_CONDITIONSET_NODE_NAME = "condition-set";
     public static String DS_DATASET_CONDITION_NODE_NAME = "condition";
-    /* DataSet的DataSource */
+    /* DataSet的DataSource相关 */
     public static String DS_DATASET_DATASOURCE_NODE_NAME = "data-source";
-    public static String DS_DATASET_DATASOURCE_CODE_NODE_NAME = "data-source";
+    public static String DS_API_DATA_SOURCE_NODE = "api-data-source";
+    public static String API_DS_PAGING_NODE = "paging";
+    public static String API_DS_PARAMS_NODE = "params";
+    public static String API_DS_PARAM_NODE = "param"; // param应该是一个更高层级的通用的
+    public static String API_DS_REQUEST_NODE = "request";
+    public static String API_DS_REQUEST_URL_NODE = "url";
+    public static String API_DS_RESPONSE_NODE = "response";
+    public static String API_DS_RESPONSE_DATA_EXTRACT_NODE = "data-extract";
+    public static String API_DS_RESPONSE_DATA_NODE = "response-data";
+    //    public static String DS_DATASET_DATASOURCE_CODE_NODE_NAME = "data-source";
     /* DataSet的data-format */
     public static String DS_DATAFORMAT = "data-format";
     public static String DS_DATAFORMAT_NODE = "node";

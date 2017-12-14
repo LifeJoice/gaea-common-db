@@ -33,7 +33,8 @@ public class GaeaDataSet<T> implements Serializable {
     public static final String CACHE_TYPE_AUTO = "auto";// 自动缓存。刷新时机由系统决定。
     public static final String CACHE_TYPE_STATIC = "static";// 静态的，系统启动时缓存，并不再刷新。
     //    private boolean isCache;// 是否缓存结果。对于一些静态的、变得比较少的可以缓存。
-    private GaeaDataSource dataSource;
+    private GaeaDataSource dataSource; // 数据源配置相关
+    private XmlApiDataSource apiDataSource; // （从API来的）数据源配置相关
     private String expireTime;// 结果集缓存保留时间。1ms|s|min|d
     private Where where; // where条件组合
     private String primaryTable; // 本DataSet的主表。可能用它的id作为排序依据等。
@@ -88,6 +89,14 @@ public class GaeaDataSet<T> implements Serializable {
 
     public void setDataSource(GaeaDataSource dataSource) {
         this.dataSource = dataSource;
+    }
+
+    public XmlApiDataSource getApiDataSource() {
+        return apiDataSource;
+    }
+
+    public void setApiDataSource(XmlApiDataSource apiDataSource) {
+        this.apiDataSource = apiDataSource;
     }
 
     public List<DataItem> getStaticResults() {

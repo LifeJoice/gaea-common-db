@@ -1,13 +1,13 @@
 package org.gaea.data.convertor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.gaea.data.dataset.convertor.XmlApiDataSourceConverter;
 import org.gaea.data.dataset.convertor.XmlDataFormatConvertor;
 import org.gaea.data.dataset.domain.*;
 import org.gaea.data.dataset.format.domain.GaeaDataFormat;
 import org.gaea.data.domain.GaeaDataSource;
 import org.gaea.data.xml.DataSetSchemaDefinition;
 import org.gaea.exception.InvalidDataException;
-import org.gaea.exception.ValidationFailedException;
 import org.gaea.util.GaeaStringUtils;
 import org.gaea.util.GaeaXmlUtils;
 import org.slf4j.Logger;
@@ -34,6 +34,8 @@ public class XmlDataSetConvertor {
     private final Logger logger = LoggerFactory.getLogger(XmlDataSetConvertor.class);
     @Autowired
     private XmlDataFormatConvertor xmlDataFormatConvertor;
+    @Autowired
+    private XmlApiDataSourceConverter apiDataSourceConvertor;
 
     /**
      * 转换XML文件中的单个DataSet
@@ -44,7 +46,7 @@ public class XmlDataSetConvertor {
      */
     public GaeaDataSet convertDataSet(Node dataSetNode) throws InvalidDataException {
         GaeaDataSet dataSet = new GaeaDataSet();
-        GaeaDataSource dataSource = new GaeaDataSource();
+//        GaeaDataSource dataSource = new GaeaDataSource();
         Element dataSetElement = (Element) dataSetNode;
         NodeList nodes = dataSetElement.getChildNodes();
         // 先自动填充<dataset>的属性
@@ -64,10 +66,17 @@ public class XmlDataSetConvertor {
                 continue;
             }
             if (DataSetSchemaDefinition.DS_DATASET_DATASOURCE_NODE_NAME.equals(n.getNodeName())) {
+                // <data-source>解析
+                GaeaDataSource dataSource = convertDataSource(n);
+                dataSet.setDataSource(dataSource);
                 // <data-source>的解析
-                Element dsElement = (Element) n;
-                String dsCode = dsElement.getAttribute(DataSetSchemaDefinition.DS_DATASET_DATASOURCE_CODE_NODE_NAME);
-                dataSource.setCode(dsCode);
+//                Element dsElement = (Element) n;
+//                String dsCode = dsElement.getAttribute(DataSetSchemaDefinition.DS_DATASET_DATASOURCE_NODE_NAME);
+//                dataSource.setCode(dsCode);
+            } else if (DataSetSchemaDefinition.DS_API_DATA_SOURCE_NODE.equals(n.getNodeName())) {
+                // <api-data-source>解析
+                XmlApiDataSource apiDataSource = apiDataSourceConvertor.convert(n);
+                dataSet.setApiDataSource(apiDataSource);
             } else if (DataSetSchemaDefinition.DS_DATASET_DATASQL_NODE_NAME.equals(n.getNodeName())) {
                 // <data-sql>的解析
                 NodeList list = n.getChildNodes();
@@ -150,6 +159,12 @@ public class XmlDataSetConvertor {
             }
         }
         return dataSet;
+    }
+
+    private GaeaDataSource convertDataSource(Node node) throws InvalidDataException {
+        GaeaDataSource gaeaDataSource = new GaeaDataSource();
+        gaeaDataSource = GaeaXmlUtils.copyAttributesToBean(node, gaeaDataSource, GaeaDataSource.class);
+        return gaeaDataSource;
     }
 
     /**
