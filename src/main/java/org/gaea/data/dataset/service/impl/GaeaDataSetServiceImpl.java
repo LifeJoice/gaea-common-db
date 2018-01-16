@@ -67,24 +67,24 @@ public class GaeaDataSetServiceImpl implements GaeaDataSetService {
         }
         Map<String, String> params = new HashMap<String, String>();
         // 获取数据集定义。可能从数据库读，也可能从缓存获取。
-        GaeaDataSet dataSetDef = gaeaDataSetResolver.getDataSet(resultConfig.getDsId());
-        GaeaDataSet dsData = null;
+        GaeaDataSet gaeaDataSet = gaeaDataSetResolver.getDataSet(resultConfig.getDsId());
+//        GaeaDataSet gaeaDataSet = null;
         /* 根据数据集定义的SQL（或者定义静态数据）获取数据 */
-        if (GaeaDataSet.CACHE_TYPE_STATIC.equals(dataSetDef.getCacheType())) {
+        if (GaeaDataSet.CACHE_TYPE_STATIC.equals(gaeaDataSet.getCacheType())) {
             // 如果定义的是静态数据集，优先从缓存取，并且不刷新。
-            dsData = gaeaCacheOperator.getHashValue(cacheProperties.get(GaeaDataSetDefinition.GAEA_DATASET_SCHEMA), resultConfig.getDsId(), GaeaDataSet.class);
-            List<DataItem> staticResults = dsData.getStaticResults();
+//            gaeaDataSet = gaeaCacheOperator.getHashValue(cacheProperties.get(GaeaDataSetDefinition.GAEA_DATASET_SCHEMA), resultConfig.getDsId(), GaeaDataSet.class);
+            List<DataItem> staticResults = gaeaDataSet.getStaticResults();
             results = GaeaCommonDbDataSetUtils.convertStaticDs(staticResults);
-        } else if (GaeaDataSet.CACHE_TYPE_NONE.equals(dataSetDef.getCacheType())) {
+        } else if (GaeaDataSet.CACHE_TYPE_NONE.equals(gaeaDataSet.getCacheType())) {
             // 如果定义是不缓存，每次都查询数据。
-            results = jdbcTemplate.queryForList(dataSetDef.getSql(), params);
-        } else if (GaeaDataSet.CACHE_TYPE_AUTO.equals(dataSetDef.getCacheType())) {
+            results = jdbcTemplate.queryForList(gaeaDataSet.getSql(), params);
+        } else if (GaeaDataSet.CACHE_TYPE_AUTO.equals(gaeaDataSet.getCacheType())) {
             // 自动缓存
-            dsData = gaeaCacheOperator.getHashValue(cacheProperties.get(GaeaDataSetDefinition.GAEA_DATASET_SCHEMA), resultConfig.getDsId(), GaeaDataSet.class);
-            if (dsData == null || dsData.getDsResults() == null) {
-                results = jdbcTemplate.queryForList(dataSetDef.getSql(), params);
+            gaeaDataSet = gaeaCacheOperator.getHashValue(cacheProperties.get(GaeaDataSetDefinition.GAEA_DATASET_SCHEMA), resultConfig.getDsId(), GaeaDataSet.class);
+            if (gaeaDataSet == null || gaeaDataSet.getDsResults() == null) {
+                results = jdbcTemplate.queryForList(gaeaDataSet.getSql(), params);
                 // 根据具体缓存策略，进行缓存处理。
-                gaeaCacheOperator.cachedByStrategy(dataSetDef, results);
+                gaeaCacheOperator.cachedByStrategy(gaeaDataSet, results);
             }
         }
         // 数据进行清洗、处理

@@ -50,6 +50,18 @@ public class GaeaCacheOperator implements CacheOperator {
         ops.set(key, value, timeOut, TimeUnit.MILLISECONDS);
     }
 
+    public <T> void put(String key, T value, Class<T> tClass) {
+        // 通过tClass判断，获取合适的redisTemplate
+        RedisTemplate<String, T> localRedisTemplate = getRedisTemplate(null, tClass);
+        ValueOperations<String, T> ops = localRedisTemplate.opsForValue();
+        ops.set(key, value);
+    }
+
+    public Long increment(String key, Long delta) {
+        ValueOperations<String, Long> ops = redisTemplate.opsForValue();
+        return ops.increment(key, delta);
+    }
+
     public <T> void put(final String key, Map<String, T> map, Class<T> tClass) {
         if (StringUtils.isEmpty(key)) {
             throw new IllegalArgumentException("key不允许为空。");
