@@ -18,6 +18,11 @@ public class Condition implements Serializable {
     public static final String FIELD_OP_GE = "ge";
     private String condOp;// 不同条件间的操作符，例如：and,or,in等
     private String placeholder; // SQL里面的占位符。如果有的话，当前condition产生的查询条件会替换占位符的内容。
+    /**
+     * 数据类型。这个和XML SCHEMA的data-type一样。
+     * 辅助字段。当查询都是字符串的时候可以无视。但如果是日期之类的，需要有dataType协助转换。
+     */
+    private String dataType;
 
     public String getPropName() {
         return propName;
@@ -57,5 +62,13 @@ public class Condition implements Serializable {
 
     public void setPlaceholder(String placeholder) {
         this.placeholder = placeholder;
+    }
+
+    public String getDataType() {
+        return dataType;
+    }
+
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
     }
 }
