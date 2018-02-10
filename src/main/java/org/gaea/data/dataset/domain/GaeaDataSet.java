@@ -50,6 +50,10 @@ public class GaeaDataSet<T> implements Serializable {
      * 例如：可以把结果集格式化成特定的json格式（树状等）。
      */
     private GaeaDataFormat dataFormat;
+    /* orderBy条件对象 */
+    private OrderBy orderBy;
+    /* groupBy条件对象 */
+    private GroupBy groupBy;
 
     public String getId() {
         return id;
@@ -161,5 +165,21 @@ public class GaeaDataSet<T> implements Serializable {
 
     public void setDataFormat(GaeaDataFormat dataFormat) {
         this.dataFormat = dataFormat;
+    }
+
+    public GroupBy getGroupBy() {
+        return groupBy;
+    }
+
+    public void setGroupBy(GroupBy groupBy) {
+        this.groupBy = groupBy;
+    }
+
+    public OrderBy getOrderBy() {
+        return orderBy;
+    }
+
+    public void setOrderBy(OrderBy orderBy) {
+        this.orderBy = orderBy;
     }
 }

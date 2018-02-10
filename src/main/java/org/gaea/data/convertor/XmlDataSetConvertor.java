@@ -77,6 +77,14 @@ public class XmlDataSetConvertor {
                 // <api-data-source>解析
                 XmlApiDataSource apiDataSource = apiDataSourceConvertor.convert(n);
                 dataSet.setApiDataSource(apiDataSource);
+            } else if (DataSetSchemaDefinition.DS_DATASET_ORDER_BY_NODE_NAME.equals(n.getNodeName())) {
+                // <order-by>解析
+                OrderBy orderBy = convertOrderBy(n);
+                dataSet.setOrderBy(orderBy);
+            } else if (DataSetSchemaDefinition.DS_DATASET_GROUP_BY_NODE_NAME.equals(n.getNodeName())) {
+                // <order-by>解析
+                GroupBy groupBy = convertGroupBy(n);
+                dataSet.setGroupBy(groupBy);
             } else if (DataSetSchemaDefinition.DS_DATASET_DATASQL_NODE_NAME.equals(n.getNodeName())) {
                 // <data-sql>的解析
                 NodeList list = n.getChildNodes();
@@ -159,6 +167,32 @@ public class XmlDataSetConvertor {
             }
         }
         return dataSet;
+    }
+
+    /**
+     * orderBy的条件xml转换为Gaea框架对象
+     *
+     * @param node
+     * @return
+     * @throws InvalidDataException
+     */
+    private OrderBy convertOrderBy(Node node) throws InvalidDataException {
+        OrderBy orderBy = new OrderBy();
+        orderBy = GaeaXmlUtils.copyAttributesToBean(node, orderBy, OrderBy.class);
+        return orderBy;
+    }
+
+    /**
+     * orderBy的条件xml转换为Gaea框架对象
+     *
+     * @param node
+     * @return
+     * @throws InvalidDataException
+     */
+    private GroupBy convertGroupBy(Node node) throws InvalidDataException {
+        GroupBy groupBy = new GroupBy();
+        groupBy = GaeaXmlUtils.copyAttributesToBean(node, groupBy, GroupBy.class);
+        return groupBy;
     }
 
     private GaeaDataSource convertDataSource(Node node) throws InvalidDataException {

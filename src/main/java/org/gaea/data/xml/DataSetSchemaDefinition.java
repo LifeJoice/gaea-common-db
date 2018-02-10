@@ -16,6 +16,10 @@ public interface DataSetSchemaDefinition {
     public static String DS_DATASET_WHERE_NODE_NAME = "where";
     public static String DS_DATASET_CONDITIONSET_NODE_NAME = "condition-set";
     public static String DS_DATASET_CONDITION_NODE_NAME = "condition";
+    /* orderBy */
+    public static String DS_DATASET_ORDER_BY_NODE_NAME = "order-by";
+    /* groupBy */
+    public static String DS_DATASET_GROUP_BY_NODE_NAME = "group-by";
     /* DataSet的DataSource相关 */
     public static String DS_DATASET_DATASOURCE_NODE_NAME = "data-source";
     public static String DS_API_DATA_SOURCE_NODE = "api-data-source";
