@@ -1,6 +1,7 @@
 package org.gaea.data.dataset.domain;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Created by iverson on 2016-7-12 10:52:25.
@@ -8,6 +9,7 @@ import java.io.Serializable;
 public class Condition implements Serializable {
     private String propName;
     private String propValue;
+    private List propValues; // 如果是in的查询，就是多值。
     private String op;// 单字段条件的比较操作符：eq ne lt gt le ge.这个在处理时会被转义.
     /* fieldOp定义的类型: eq ne lt gt le ge */
     public static final String FIELD_OP_EQ = "eq";
@@ -38,6 +40,14 @@ public class Condition implements Serializable {
 
     public void setPropValue(String propValue) {
         this.propValue = propValue;
+    }
+
+    public List getPropValues() {
+        return propValues;
+    }
+
+    public void setPropValues(List propValues) {
+        this.propValues = propValues;
     }
 
     public String getOp() {
