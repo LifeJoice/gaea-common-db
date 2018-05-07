@@ -54,6 +54,8 @@ public class GaeaDataSet<T> implements Serializable {
     private OrderBy orderBy;
     /* groupBy条件对象 */
     private GroupBy groupBy;
+    /* 数据的处理器定义 */
+    private Processor processor;
 
     public String getId() {
         return id;
@@ -181,5 +183,13 @@ public class GaeaDataSet<T> implements Serializable {
 
     public void setOrderBy(OrderBy orderBy) {
         this.orderBy = orderBy;
+    }
+
+    public Processor getProcessor() {
+        return processor;
+    }
+
+    public void setProcessor(Processor processor) {
+        this.processor = processor;
     }
 }

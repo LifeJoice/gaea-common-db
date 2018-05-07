@@ -20,6 +20,9 @@ public interface DataSetSchemaDefinition {
     public static String DS_DATASET_ORDER_BY_NODE_NAME = "order-by";
     /* groupBy */
     public static String DS_DATASET_GROUP_BY_NODE_NAME = "group-by";
+    /* processor数据处理器定义 */
+    public static String DS_DATASET_PROCESSOR_NODE_NAME = "processor";
+    public static String DS_DATASET_PROCESSOR_PARAM_NODE = "param"; // 给processor用的参数
     /* DataSet的DataSource相关 */
     public static String DS_DATASET_DATASOURCE_NODE_NAME = "data-source";
     public static String DS_API_DATA_SOURCE_NODE = "api-data-source";

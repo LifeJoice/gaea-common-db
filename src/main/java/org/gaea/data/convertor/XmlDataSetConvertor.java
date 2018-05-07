@@ -85,6 +85,10 @@ public class XmlDataSetConvertor {
                 // <order-by>解析
                 GroupBy groupBy = convertGroupBy(n);
                 dataSet.setGroupBy(groupBy);
+            } else if (DataSetSchemaDefinition.DS_DATASET_PROCESSOR_NODE_NAME.equals(n.getNodeName())) {
+                // <processor>解析
+                Processor processor = convertProcessor(n);
+                dataSet.setProcessor(processor);
             } else if (DataSetSchemaDefinition.DS_DATASET_DATASQL_NODE_NAME.equals(n.getNodeName())) {
                 // <data-sql>的解析
                 NodeList list = n.getChildNodes();
@@ -167,6 +171,36 @@ public class XmlDataSetConvertor {
             }
         }
         return dataSet;
+    }
+
+    /**
+     * 提取XML文件中，processor部分的定义。
+     *
+     * @param node
+     * @return
+     * @throws InvalidDataException
+     */
+    private Processor convertProcessor(Node node) throws InvalidDataException {
+        Processor processor = new Processor();
+        processor = GaeaXmlUtils.copyAttributesToBean(node, processor, Processor.class);
+        processor.setType(node.getNodeName());
+
+        NodeList childNodes = node.getChildNodes();
+        // 解析<param>参数
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            Node n = childNodes.item(i);
+            // xml解析会把各种换行符等解析成元素。统统跳过。
+            if (!(n instanceof Element)) {
+                continue;
+            }
+            if (DataSetSchemaDefinition.DS_DATASET_PROCESSOR_PARAM_NODE.equals(n.getNodeName())) {
+                String name = ((Element) n).getAttribute("name");
+                String value = ((Element) n).getAttribute("value");
+                processor.getParams().put(name, value);
+            }
+        }
+
+        return processor;
     }
 
     /**
