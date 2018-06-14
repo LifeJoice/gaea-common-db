@@ -1,6 +1,7 @@
 package org.gaea.data.dataset;
 
 import org.gaea.data.dataset.domain.DataItem;
+import org.gaea.exception.ValidationFailedException;
 
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,7 @@ import java.util.Map;
  */
 public interface DsProcessor {
     /* 执行数据的转换或者生成 */
-    public List<DataItem> dataProcess(List<Map<String, Object>> origData, Map contextParams);
+    public List<DataItem> dataProcess(List<Map<String, Object>> origData, Map contextParams) throws ValidationFailedException;
 
     /* 相关实现需要的额外参数，可以从xml传递给类 */
     public Map<String, Object> getParams();
